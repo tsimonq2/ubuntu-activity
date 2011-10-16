@@ -26,13 +26,13 @@
 							to: release['opened']
 						}
 					});
-				if (release['freeze'] !== null && release['released'] !== null)
+				if (release['freeze'] !== null)
 					markings.push({
-						color: '#fee',
+						color: '#f00',
 						lideWidth: 0,
 						xaxis: {
 							from: release['freeze'],
-							to: release['released']
+							to: release['freeze']
 						}
 					});
 			});

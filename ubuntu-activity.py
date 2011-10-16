@@ -70,7 +70,7 @@ def release_schedule():
         'maverick': '2010-08-12',
         'natty': '2011-02-24',
         'oneiric': '2011-08-11',
-        'precise': '2011-02-16',
+        'precise': '2012-02-16',
     }
     for series in reversed(list(ubu.series)):
         freeze = freezes.get(series.name, None)
