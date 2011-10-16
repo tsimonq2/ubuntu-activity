@@ -15,6 +15,27 @@
 	<script type="text/javascript">
 	$(function (){
 		$.getJSON('data.json', function(json) {
+			var markings = [];
+			$.each(json['releases'], function(i, release) {
+				if (release['opened'] !== null)
+					markings.push({
+						color: '#000',
+						lideWidth: 1,
+						xaxis: {
+							from: release['opened'],
+							to: release['opened']
+						}
+					});
+				if (release['freeze'] !== null && release['released'] !== null)
+					markings.push({
+						color: '#fee',
+						lideWidth: 0,
+						xaxis: {
+							from: release['freeze'],
+							to: release['released']
+						}
+					});
+			});
 			var options = {
 				series: {
 					lines: {show: true, fill: true},
@@ -26,12 +47,24 @@
 				legend: {
 					position: "nw",
 				},
+				grid: {
+					markings: markings,
+				}
 			};
 			var data = [];
-			$.each(json, function(component, series) {
-				data.push({label: component, data: series});
+			$.each(['main', 'universe', 'multiverse', 'restricted'], function(i, component) {
+				data.push({label: component, data: json[component]});
 			});
-			$.plot($("#activity"), data, options);
+			var e = $("#activity");
+			var p = $.plot(e, data, options);
+			var height = p.getYAxes()[0].max;
+			$.each(json['releases'], function(i, release) {
+				if (release['opened'] !== null) {
+					o = p.pointOffset({x: release['opened'], y: height});
+					e.append('<div style="position: absolute; left: ' + (o.left + 4)
+					         + 'px; top: ' + o.top + 'px;">' + release['name'] + '</div>');
+				}
+			});
 		});
 	});
 	</script>
