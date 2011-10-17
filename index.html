@@ -10,13 +10,15 @@
 <body>
 	<h1 id="top">Ubuntu upload activity</h1>
 	<div id="activity" style="width:1600px;height:600px;"></div>
+	<h1 id="top">Ubuntu upload affiliations</h1>
+	<div id="affiliation" style="width:1600px;height:600px;"></div>
 	<p><a href="https://code.launchpad.net/~stefanor/+junk/ubuntu-activity">lp:~stefanor/+junk/ubuntu-activity</a></p>
 	<p>Generated from <a href="http://udd.debian.org/">UDD</a></p>
 	<script type="text/javascript">
 	$(function (){
-		$.getJSON('data.json', function(json) {
+		function plot(element, data, options, releases) {
 			var markings = [];
-			$.each(json['releases'], function(i, release) {
+			$.each(releases, function(i, release) {
 				if (release['opened'] !== null)
 					markings.push({
 						color: '#000',
@@ -36,6 +38,23 @@
 						}
 					});
 			});
+			if (!('grid' in options))
+				options.grid = {};
+			if (!('markings' in options.grid))
+				options.grid.markings = markings;
+
+			var p = $.plot(element, data, options);
+
+			var height = p.getYAxes()[0].max;
+			$.each(releases, function(i, release) {
+				if (release['opened'] !== null) {
+					o = p.pointOffset({x: release['opened'], y: height});
+					element.append('<div style="position: absolute; left: ' + (o.left + 4)
+							 + 'px; top: ' + o.top + 'px;">' + release['name'] + '</div>');
+				}
+			});
+		}
+		$.getJSON('data.json', function(json) {
 			var options = {
 				series: {
 					lines: {show: true, fill: true},
@@ -47,24 +66,22 @@
 				legend: {
 					position: "nw",
 				},
-				grid: {
-					markings: markings,
-				}
 			};
 			var data = [];
 			$.each(['main', 'universe', 'multiverse', 'restricted'], function(i, component) {
 				data.push({label: component, data: json[component]});
 			});
 			var e = $("#activity");
-			var p = $.plot(e, data, options);
-			var height = p.getYAxes()[0].max;
-			$.each(json['releases'], function(i, release) {
-				if (release['opened'] !== null) {
-					o = p.pointOffset({x: release['opened'], y: height});
-					e.append('<div style="position: absolute; left: ' + (o.left + 4)
-					         + 'px; top: ' + o.top + 'px;">' + release['name'] + '</div>');
-				}
+			plot(e, data, options, json['releases']);
+
+			data = [];
+			$.each(['canonical', 'community'], function(i, affl) {
+				data.push({label: affl, data: json[affl]});
 			});
+			data[0].color = '#772953';
+			data[1].color = '#dbba75';
+			e = $("#affiliation");
+			plot(e, data, options, json['releases']);
 		});
 	});
 	</script>

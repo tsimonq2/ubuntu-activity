@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import datetime
 import json
@@ -55,6 +56,75 @@ def mine_upload_history():
         data[result.component].append([js_date(result.bucket), result.count])
     return data
 
+def mine_canonical():
+    # Make sure we are dealing with Unicode:
+    psycopg2.extensions.register_type(psycopg2.extensions.UNICODE)
+    psycopg2.extensions.register_type(psycopg2.extensions.UNICODEARRAY)
+    conn = psycopg2.connect(DB)
+    conn.set_client_encoding('UTF-8')
+    cur = conn.cursor()
+
+    canonical_people = """
+        Alexander Sack
+        Andres Rodriguez
+        Barry Warsaw
+        Bryce Harrington
+        Chris Coulson
+        Chuck Short
+        Colin Watson
+        Daniel Holbach
+        Daniel T Chen
+        Dave Walker
+        Didier Roche
+        Dustin Kirkland
+        Evan Dandrea
+        James Westby
+        Jamie Strandboge
+        Jonathan Riddell
+        Kees Cook
+        Ken VanDine
+        Laurent Bigonville
+        Loïc Minier
+        Luke Yelavich
+        Marc Deslauriers
+        Martin Pitt
+        Mathias Gug
+        Mathieu Trudel-Lapierre
+        Matthias Klose
+        Micah Gersten
+        Michael Terry
+        Michael Vogt
+        Scott James Remnant
+        Scott Moser
+        Sebastien Bacher
+        Steve Kowalik
+        Steve Langasek
+        Stéphane Graber
+        Thierry Carrez
+        Tim Gardner
+        Timo Aaltonen
+    """.decode('utf-8').strip()
+    canonical_people = [name.strip() for name in canonical_people.split(u'\n')]
+    cur.execute(u"""
+        SELECT count(*), date_trunc('week', date) AS bucket,
+          signed_by_name IN (%s)
+          OR signed_by_email LIKE '%%@canonical.com'
+          AS canonical
+        FROM ubuntu_upload_history
+        JOIN ubuntu_sources
+          ON (ubuntu_upload_history.source = ubuntu_sources.source
+              AND ubuntu_upload_history.distribution = ubuntu_sources.release)
+        WHERE signed_by != 'N/A'
+        GROUP BY bucket, canonical
+        ORDER BY bucket;
+    """ % u', '.join(u"'%s'" % name for name in canonical_people))
+    keys = ('count', 'bucket', 'canonical')
+    data = {True: [], False: []}
+    for row in cur.fetchall():
+        result = AttrDict(**dict(zip(keys, row)))
+        data[result.canonical].append([js_date(result.bucket), result.count])
+    return data
+
 
 def release_schedule():
     lp = Launchpad.login_anonymously('ubuntu-activity', 'production')
@@ -89,6 +159,9 @@ def release_schedule():
 def main():
     data = mine_upload_history()
     data['releases'] = release_schedule()
+    affl = mine_canonical()
+    data['canonical'] = affl[True]
+    data['community'] = affl[False]
 
     with open('data.json', 'w') as f:
         json.dump(data, f)
