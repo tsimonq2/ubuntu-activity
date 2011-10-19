@@ -45,18 +45,22 @@ def js_date(date):
 def mine_upload_history(conn):
     cur = conn.cursor()
 
+    # Currently we don't have all releases in ubuntu_sources, so we need to
+    # cheat the components a little
     cur.execute("""
-        SELECT count(*), date_trunc('week', date) AS bucket, component
+        SELECT count(*), date_trunc('week', date) AS bucket,
+         COALESCE(component, 'unknown') AS ccomponent
         FROM ubuntu_upload_history
-        JOIN ubuntu_sources
+        LEFT OUTER JOIN ubuntu_sources
           ON (ubuntu_upload_history.source = ubuntu_sources.source
               AND ubuntu_upload_history.distribution = ubuntu_sources.release)
-        WHERE signed_by != 'N/A'
-        GROUP BY bucket, component
+        WHERE changed_by_name != 'Ubuntu Archive Auto-Sync'
+        GROUP BY bucket, ccomponent
         ORDER BY bucket;
     """)
     keys = ('count', 'bucket', 'component')
-    data = {'main': [], 'universe': [], 'multiverse': [], 'restricted': []}
+    data = {'main': [], 'universe': [], 'multiverse': [], 'restricted': [],
+            'unknown': []}
     for row in cur.fetchall():
         result = AttrDict(**dict(zip(keys, row)))
         data[result.component].append([js_date(result.bucket), result.count])
@@ -80,12 +84,12 @@ def mine_by_affiliation(conn, affiliations):
 
     cur.execute(u"""
         SELECT count(*), date_trunc('week', date) AS bucket,
-          COALESCE(affiliation, 'community') AS affiliation
+          COALESCE(affiliation, 'community') AS caffiliation
         FROM ubuntu_upload_history
         LEFT OUTER JOIN ubuntu_affiliations
           ON (changed_by_name = name)
-        WHERE signed_by != 'N/A'
-        GROUP BY bucket, affiliation
+        WHERE changed_by_name != 'Ubuntu Archive Auto-Sync'
+        GROUP BY bucket, caffiliation
         ORDER BY bucket;
     """)
     keys = ('count', 'bucket', 'affiliation')
@@ -106,8 +110,8 @@ def mine_top_uploaders(conn):
           changed_by_name,
           regexp_replace(distribution, '-.*', '') AS release
         FROM ubuntu_upload_history
-        WHERE signed_by != 'N/A'
-          AND changed_by_name != ''
+        WHERE changed_by_name != ''
+          AND changed_by_name != 'Ubuntu Archive Auto-Sync'
         GROUP BY release, changed_by_name
         HAVING count(*) >= 10
         ORDER BY release;
@@ -155,8 +159,8 @@ def guess_affiliations(conn, lp):
     cur = conn.cursor()
     cur.execute("""SELECT changed_by_name, changed_by_email, count(*) as count
                    FROM ubuntu_upload_history
-                   WHERE signed_by != 'N/A'
-                     AND changed_by_name != ''
+                   WHERE changed_by_name != ''
+                     AND changed_by_name != 'Ubuntu Archive Auto-Sync'
                    GROUP BY changed_by_name, changed_by_email;""")
 
     keys = ('name', 'email', 'count')
