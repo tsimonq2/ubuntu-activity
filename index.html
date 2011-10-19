@@ -22,6 +22,42 @@
 	</p>
 	<script type="text/javascript">
 	$(function (){
+		/* Input: array of (timestamp, value) in dictionary data
+		 *        modified in place.
+		 * All timestamps are collected in a set, and each array has missing
+		 * timestamps added, with the value of 0
+		 */
+		function fill_in_data(data) {
+			var timestamps = [];
+			$.each(data, function(series, data) {
+				$.each(data, function(i, row) {
+					timestamps.push(row[0]);
+				});
+			});
+
+			// Eliminate duplicates:
+			timestamps.sort();
+			for(i = 1; i < timestamps.length; i++) {
+				if (timestamps[i] == timestamps[i-1]) {
+					timestamps.splice(i, 1);
+					i--;
+				}
+			}
+
+			$.each(data, function(series, data) {
+				for (i = 0; i < timestamps.length; i++) {
+					if (i == data.length) {
+						data.push([timestamps[i], 0]);
+					} else if (timestamps[i] < data[i][0]) {
+						data.splice(i, 0, [timestamps[i], 0]);
+						i--;
+					}
+				}
+			});
+		}
+
+		/* Draw a plot, and add releases markings
+		 */
 		function plot(element, data, options, releases) {
 			var markings = [];
 			$.each(releases, function(i, release) {
@@ -62,6 +98,7 @@
 				}
 			});
 		}
+
 		$.getJSON('data.json', function(json) {
 			var options = {
 				series: {
@@ -71,10 +108,16 @@
 				xaxis: {
 					mode: "time",
 				},
+				yaxis: {
+				},
 				legend: {
 					position: "nw",
 				},
 			};
+
+			fill_in_data(json['by_component']);
+			fill_in_data(json['by_affiliation']);
+
 			var series = [];
 			$.each(json['by_component'], function(component, data) {
 				series.push({label: component, data: data});
