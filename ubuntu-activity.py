@@ -131,6 +131,12 @@ def release_schedule(lp):
     opened = None
     releases = []
     freezes = {
+        'hoary': '2005-02-07',
+        'breezy': '2005-08-11',
+        'dapper': '2006-02-23',
+        'edgy': '2006-09-07',
+        'feisty': '2007-02-08',
+        'gutsy': '2007-08-16',
         'hardy': '2008-02-14',
         'intrepid': '2008-08-28',
         'jaunty': '2009-02-19',
