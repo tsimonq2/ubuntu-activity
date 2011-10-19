@@ -53,7 +53,8 @@ def mine_upload_history(conn):
         FROM ubuntu_upload_history
         LEFT OUTER JOIN ubuntu_sources
           ON (ubuntu_upload_history.source = ubuntu_sources.source
-              AND ubuntu_upload_history.distribution = ubuntu_sources.release)
+              AND split_part(ubuntu_upload_history.distribution, '-', 1)
+                  = split_part(ubuntu_sources.release, '-', 1))
         WHERE changed_by_name != 'Ubuntu Archive Auto-Sync'
         GROUP BY bucket, ccomponent
         ORDER BY bucket;
