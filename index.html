@@ -17,8 +17,9 @@
 	<div id="top-uploaders"></div>
 	<p><a href="https://code.launchpad.net/~stefanor/+junk/ubuntu-activity">lp:~stefanor/+junk/ubuntu-activity</a></p>
 	<p>
-		Generated from <a href="http://udd.debian.org/">UDD</a>.
-		Affiliations guessed from email addresses and team membership on Launchpad.
+		Generated from <a href="http://udd.debian.org/">UDD</a>.<br />
+		Affiliations guessed from email addresses and team membership on Launchpad.<br />
+		The last timestamp in the dataset was at <span id="updated">Unknown</span> (so presumably that's how up to date this page is).
 	</p>
 	<script type="text/javascript">
 	$(function (){
@@ -176,6 +177,16 @@
 				};
 				$.plot(graph, series, options);
 			});
+
+			var highest_timestamp = 0;
+			$.each(json['by_component'], function(series, data) {
+				$.each(data, function(i, row) {
+					if (row[0] > highest_timestamp)
+						highest_timestamp = row[0];
+				});
+			});
+			highest_timestamp = new Date(highest_timestamp);
+			$("#updated").html(highest_timestamp.toUTCString());
 		});
 	});
 	</script>
