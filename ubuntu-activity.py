@@ -257,6 +257,8 @@ def guess_affiliations(conn, lp):
     with open('people-cache.json', 'w') as f:
         json.dump(people, f)
 
+    return people
+
 
 def cached_people():
     with open('people-cache.json', 'r') as f:
