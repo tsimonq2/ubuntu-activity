@@ -49,15 +49,14 @@ def mine_upload_history(conn):
     # Currently we don't have all releases in ubuntu_sources, so we need to
     # cheat the components a little
     cur.execute("""
-        SELECT count(*), date_trunc('week', date) AS bucket,
-         COALESCE(component, 'unknown') AS ccomponent
+        SELECT count(*), date_trunc('week', date) AS bucket, component
         FROM ubuntu_upload_history
         LEFT OUTER JOIN ubuntu_sources
           ON (ubuntu_upload_history.source = ubuntu_sources.source
               AND split_part(ubuntu_upload_history.distribution, '-', 1)
                   = split_part(ubuntu_sources.release, '-', 1))
         WHERE changed_by_email != 'archive@ubuntu.com'
-        GROUP BY bucket, ccomponent
+        GROUP BY bucket, component
         ORDER BY bucket;
     """)
     keys = ('count', 'bucket', 'component')
