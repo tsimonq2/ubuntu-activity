@@ -5,6 +5,7 @@ import StringIO
 import datetime
 import json
 import os
+import re
 import sys
 
 from launchpadlib.launchpad import Launchpad
@@ -188,6 +189,9 @@ def guess_affiliations(conn, lp):
     """.decode('utf-8').strip()
     by_hand = set(person.strip() for person in by_hand.split('\n'))
 
+    lp_valid_email_re = re.compile(r"^[_\.0-9a-zA-Z-+=]+"
+                                   r"@(([0-9a-zA-Z-]{1,}\.)*)[a-zA-Z]{2,}$")
+
     for person in people.itervalues():
         if person.affiliation is None:
             sys.stdout.flush()
@@ -199,6 +203,9 @@ def guess_affiliations(conn, lp):
                 print " -> canonical (upload email)"
         if person.affiliation is None:
             for address in person.email:
+                if lp_valid_email_re.match(address) is None:
+                    print " Invalid e-mail address %s, skipping" % address
+                    continue
                 p = lp.people.getByEmail(email=address)
                 if p is None:
                     continue
