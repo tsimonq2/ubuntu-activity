@@ -56,7 +56,7 @@ def mine_upload_history(conn):
           ON (ubuntu_upload_history.source = ubuntu_sources.source
               AND split_part(ubuntu_upload_history.distribution, '-', 1)
                   = split_part(ubuntu_sources.release, '-', 1))
-        WHERE changed_by_name != 'Ubuntu Archive Auto-Sync'
+        WHERE changed_by_email != 'archive@ubuntu.com'
         GROUP BY bucket, ccomponent
         ORDER BY bucket;
     """)
@@ -90,7 +90,7 @@ def mine_by_affiliation(conn, affiliations):
         FROM ubuntu_upload_history
         LEFT OUTER JOIN ubuntu_affiliations
           ON (changed_by_name = name)
-        WHERE changed_by_name != 'Ubuntu Archive Auto-Sync'
+        WHERE changed_by_email != 'archive@ubuntu.com'
         GROUP BY bucket, caffiliation
         ORDER BY bucket;
     """)
@@ -113,7 +113,7 @@ def mine_top_uploaders(conn):
           regexp_replace(distribution, '-.*', '') AS release
         FROM ubuntu_upload_history
         WHERE changed_by_name != ''
-          AND changed_by_name != 'Ubuntu Archive Auto-Sync'
+          AND changed_by_email != 'archive@ubuntu.com'
         GROUP BY release, changed_by_name
         HAVING count(*) >= 10
         ORDER BY release;
@@ -168,7 +168,7 @@ def guess_affiliations(conn, lp):
     cur.execute("""SELECT changed_by_name, changed_by_email, count(*) as count
                    FROM ubuntu_upload_history
                    WHERE changed_by_name != ''
-                     AND changed_by_name != 'Ubuntu Archive Auto-Sync'
+                     AND changed_by_email != 'archive@ubuntu.com'
                    GROUP BY changed_by_name, changed_by_email;""")
 
     keys = ('name', 'email', 'count')
