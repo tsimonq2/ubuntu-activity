@@ -51,6 +51,7 @@ def mine_upload_history(conn):
         FROM ubuntu_upload_history
         WHERE changed_by_email != 'archive@ubuntu.com'
           AND changed_by_email != 'katie@jackass.ubuntu.com'
+          AND changed_by_email != 'language-packs@ubuntu.com'
         GROUP BY bucket, component
         ORDER BY bucket;
     """)
@@ -86,6 +87,7 @@ def mine_by_affiliation(conn, affiliations):
           ON (changed_by_name = name)
         WHERE changed_by_email != 'archive@ubuntu.com'
           AND changed_by_email != 'katie@jackass.ubuntu.com'
+          AND changed_by_email != 'language-packs@ubuntu.com'
         GROUP BY bucket, caffiliation
         ORDER BY bucket;
     """)
@@ -110,6 +112,7 @@ def mine_top_uploaders(conn):
         WHERE changed_by_name != ''
           AND changed_by_email != 'archive@ubuntu.com'
           AND changed_by_email != 'katie@jackass.ubuntu.com'
+          AND changed_by_email != 'language-packs@ubuntu.com'
         GROUP BY release, changed_by_name
         HAVING count(*) >= 10
         ORDER BY release;
@@ -166,6 +169,7 @@ def guess_affiliations(conn, lp):
                    WHERE changed_by_name != ''
                      AND changed_by_email != 'archive@ubuntu.com'
                      AND changed_by_email != 'katie@jackass.ubuntu.com'
+                     AND changed_by_email != 'language-packs@ubuntu.com'
                    GROUP BY changed_by_name, changed_by_email;""")
 
     keys = ('name', 'email', 'count')
