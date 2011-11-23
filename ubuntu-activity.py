@@ -46,15 +46,9 @@ def js_date(date):
 def mine_upload_history(conn):
     cur = conn.cursor()
 
-    # Currently we don't have all releases in ubuntu_sources, so we need to
-    # cheat the components a little
     cur.execute("""
         SELECT count(*), date_trunc('week', date) AS bucket, component
         FROM ubuntu_upload_history
-        LEFT OUTER JOIN ubuntu_sources
-          ON (ubuntu_upload_history.source = ubuntu_sources.source
-              AND split_part(ubuntu_upload_history.distribution, '-', 1)
-                  = split_part(ubuntu_sources.release, '-', 1))
         WHERE changed_by_email != 'archive@ubuntu.com'
           AND changed_by_email != 'katie@jackass.ubuntu.com'
         GROUP BY bucket, component
@@ -62,7 +56,7 @@ def mine_upload_history(conn):
     """)
     keys = ('count', 'bucket', 'component')
     data = {'main': [], 'universe': [], 'multiverse': [], 'restricted': [],
-            'unknown': []}
+            'N/A': []}
     for row in cur.fetchall():
         result = AttrDict(**dict(zip(keys, row)))
         data[result.component].append([js_date(result.bucket), result.count])
