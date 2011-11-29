@@ -139,8 +139,8 @@
 
 			series = [];
 			var colours = {
-				canonical: '#772953',
-				community: '#dbba75',
+				'canonical': '#772953',
+				'non-canonical': '#dbba75',
 			};
 			$.each(json['by_affiliation'], function(affil, data) {
 				series.push({label: affil, data: data, color: colours[affil]});

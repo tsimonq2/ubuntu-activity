@@ -81,7 +81,7 @@ def mine_by_affiliation(conn, affiliations):
 
     cur.execute(u"""
         SELECT count(*), date_trunc('week', date) AS bucket,
-          COALESCE(affiliation, 'community') AS caffiliation
+          COALESCE(affiliation, 'non-canonical') AS caffiliation
         FROM ubuntu_upload_history
         LEFT OUTER JOIN ubuntu_affiliations
           ON (changed_by_name = name)
@@ -226,7 +226,7 @@ def guess_affiliations(conn, lp):
                     break
                 if name == 'not-canonical':
                     print " -> not canonical (lp group)"
-                    person.affiliation = 'community'
+                    person.affiliation = 'non-canonical'
                     break
         if person.affiliation is None and person.name in by_hand:
             print " -> canonical (by hand)"
@@ -235,8 +235,8 @@ def guess_affiliations(conn, lp):
     print "================================================="
     print "Canonical: ", len([p for p in people.itervalues()
                               if p.affiliation == 'canonical'])
-    print "Known Community: ", len([p for p in people.itervalues()
-                                    if p.affiliation == 'community'])
+    print "Known non-Community: ", len([p for p in people.itervalues()
+                                    if p.affiliation == 'non-canonical'])
     print "Unknown: ", len([p for p in people.itervalues()
                             if p.affiliation is None])
 
@@ -247,7 +247,7 @@ def guess_affiliations(conn, lp):
             affil = '  '
             if person.affiliation == 'canonical':
                 affil = ' C'
-            if person.affiliation == 'community':
+            if person.affiliation == 'non-canonical':
                 affil = '!C'
             f.write('% 5i  %s  %s\n'
                     % (person.count, affil, person.name.encode('utf-8')))
@@ -282,12 +282,12 @@ def main():
         print "Guessing affiliations"
         people = guess_affiliations(conn, lp)
 
-    affiliations = {'canonical': [], 'community': []}
+    affiliations = {'canonical': [], 'non-canonical': []}
     for person in people.itervalues():
         if person.affiliation == 'canonical':
             affiliations['canonical'].append(person.name)
         else:
-            affiliations['community'].append(person.name)
+            affiliations['non-canonical'].append(person.name)
 
     print "Mining upload history"
     by_component = mine_upload_history(conn)
