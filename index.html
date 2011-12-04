@@ -32,7 +32,7 @@
 		(Last updated: at <span id="udd-updated">Unknown</span>).<br />
 		Affiliations guessed from email addresses and team membership on Launchpad
 		(Last updated: at <span id="affiliations-updated">Unknown</span>).<br />
-		<button type="button" id="refresh">Refresh data</button>
+		<button type="button" id="refresh">Refresh data</button><span id="refresh-notice"></span>
 	</p>
 	<script type="text/javascript">
 	$(function (){
@@ -197,13 +197,18 @@
 		}
 		$.getJSON('data.json', data_loaded);
 		$("#refresh").click(function() {
+			$("#refresh-notice").html("Updating...");
 			$.ajax({
 				url: 'data.json',
 				ifModified: true,
 				dataType: 'json',
 				success: function(data, status) {
-					if (status == 'success')
+					if (status == 'success') {
 						data_loaded(data);
+						$("#refresh-notice").html("Updated.");
+					} else {
+						$("#refresh-notice").html("No changes.");
+					}
 				},
 			});
 		});
