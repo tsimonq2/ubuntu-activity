@@ -258,6 +258,21 @@ def guess_affiliations(conn, lp):
     return people
 
 
+def metadata(conn):
+    cur = conn.cursor()
+    cur.execute("""SELECT MAX(start_time)
+                   FROM timestamps
+                   WHERE source = 'ubuntu-upload-history'
+                     AND command = 'run';""")
+    udd_last_updated = js_date(cur.fetchone()[0])
+
+    affiliations_updated = os.path.getmtime('people-cache.json') * 1000
+    return {
+        'udd_updated': udd_last_updated,
+        'affiliations_updated': affiliations_updated,
+    }
+
+
 def cached_people():
     with open('people-cache.json', 'r') as f:
         people = json.load(f)
@@ -296,9 +311,11 @@ def main():
     print "Looking up release schedule"
     top_uploaders = mine_top_uploaders(conn)
     releases = release_schedule(lp)
+    meta = metadata(conn)
 
     with open('data.json', 'w') as f:
         json.dump({
+            'meta': meta,
             'by_component': by_component,
             'by_affiliation': by_affiliation,
             'releases': releases,

@@ -28,9 +28,11 @@
 	<div id="top-uploaders"></div>
 	<p><a href="https://code.launchpad.net/~stefanor/+junk/ubuntu-activity">lp:~stefanor/+junk/ubuntu-activity</a></p>
 	<p>
-		Generated from <a href="http://udd.debian.org/">UDD</a>.<br />
-		Affiliations guessed from email addresses and team membership on Launchpad.<br />
-		The last timestamp in the dataset was at <span id="updated">Unknown</span> (so presumably that's how up to date this page is).
+		Generated from <a href="http://udd.debian.org/">UDD</a>
+		(Last updated: at <span id="udd-updated">Unknown</span>).<br />
+		Affiliations guessed from email addresses and team membership on Launchpad
+		(Last updated: at <span id="affiliations-updated">Unknown</span>).<br />
+		<button type="button" id="refresh">Refresh data</button>
 	</p>
 	<script type="text/javascript">
 	$(function (){
@@ -111,7 +113,7 @@
 			});
 		}
 
-		$.getJSON('data.json', function(json) {
+		function data_loaded(json) {
 			var options = {
 				series: {
 					lines: {show: true, fill: true},
@@ -148,6 +150,7 @@
 			e = $("#affiliation");
 			plot(e, series, options, json['releases']);
 
+			$("#top-uploaders").html("");
 			var releases = json['releases'].slice(0);
 			releases.reverse();
 			$.each(releases, function(i, release) {
@@ -189,15 +192,20 @@
 				$.plot(graph, series, options);
 			});
 
-			var highest_timestamp = 0;
-			$.each(json['by_component'], function(series, data) {
-				$.each(data, function(i, row) {
-					if (row[0] > highest_timestamp)
-						highest_timestamp = row[0];
-				});
+			$("#udd-updated").html(new Date(json['meta']['udd_updated']).toUTCString());
+			$("#affiliations-updated").html(new Date(json['meta']['affiliations_updated']).toUTCString());
+		}
+		$.getJSON('data.json', data_loaded);
+		$("#refresh").click(function() {
+			$.ajax({
+				url: 'data.json',
+				ifModified: true,
+				dataType: 'json',
+				success: function(data, status) {
+					if (status == 'success')
+						data_loaded(data);
+				},
 			});
-			highest_timestamp = new Date(highest_timestamp);
-			$("#updated").html(highest_timestamp.toUTCString());
 		});
 	});
 	</script>
