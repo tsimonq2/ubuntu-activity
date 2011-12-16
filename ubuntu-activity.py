@@ -74,7 +74,8 @@ def mine_by_affiliation(conn, affiliations):
         );""")
     for affil, people in affiliations.iteritems():
         content = u'\n'.join(u'\t'.join([person, affil]) for person in people)
-        cur.copy_from(StringIO.StringIO(content), 'ubuntu_affiliations',
+        cur.copy_from(StringIO.StringIO(content.encode('utf-8')),
+                      'ubuntu_affiliations',
                       columns=('name', 'affiliation'))
     with open('affiliation-table.txt', 'w') as f:
         cur.copy_to(f, 'ubuntu_affiliations')
