@@ -149,7 +149,8 @@ def release_schedule(lp):
         'oneiric': '2011-08-11',
         'precise': '2012-02-16',
         'quantal': '2012-08-23',
-        'raring': '2013-02-21',
+        'raring': '2013-03-07',
+        'saucy': '2013-08-22',
     }
     for series in reversed(list(ubu.series)):
         freeze = freezes.get(series.name, None)
