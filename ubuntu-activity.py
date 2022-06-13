@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # -*- coding: utf-8 -*-
 
 import StringIO
@@ -14,9 +14,10 @@ import psycopg2
 import psycopg2.extensions
 
 DATABASE = {'database': 'udd',
-            'port': 5441,
-            'host': 'localhost',
-            'user': 'guest',
+            'port': 5432,
+            'host': 'udd-mirror.debian.net',
+            'user': 'udd-mirror',
+            'password': 'udd-mirror',
            }
 
 
